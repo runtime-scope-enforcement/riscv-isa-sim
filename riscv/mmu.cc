@@ -12,6 +12,7 @@ mmu_t::mmu_t(sim_t* sim, processor_t* proc)
   matched_trigger(NULL)
 {
   flush_tlb();
+  srs = new srs_t();
 }
 
 mmu_t::~mmu_t()

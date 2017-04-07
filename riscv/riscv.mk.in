@@ -25,6 +25,7 @@ riscv_hdrs = \
 	mulhi.h \
 	gdbserver.h \
 	debug_module.h \
+	srs.h \
 
 riscv_precompiled_hdrs = \
 	insn_template.h \
@@ -47,6 +48,7 @@ riscv_srcs = \
 	rtc.cc \
 	gdbserver.cc \
 	debug_module.cc \
+	srs.cc \
 	$(riscv_gen_srcs) \
 
 riscv_test_srcs =
@@ -252,6 +254,13 @@ riscv_insn_list = \
 	wfi \
 	xor \
 	xori \
+	sbent \
+	srbse \
+	srlmt \
+	srdlg \
+	srdlgm \
+	sbxit \
+	srsub \
 
 riscv_gen_srcs = \
 	$(addsuffix .cc,$(riscv_insn_list))

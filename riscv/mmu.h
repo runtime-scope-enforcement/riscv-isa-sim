@@ -10,6 +10,8 @@
 #include "sim.h"
 #include "processor.h"
 #include "memtracer.h"
+#include "srs.h"
+#include "trap.h"
 #include <stdlib.h>
 #include <vector>
 
@@ -51,9 +53,14 @@ public:
   mmu_t(sim_t* sim, processor_t* proc);
   ~mmu_t();
 
+  srs_t *get_srs() { return srs; }
   // template for functions that load an aligned value from memory
+
   #define load_func(type) \
     inline type##_t load_##type(reg_t addr) { \
+      if (proc && proc->get_state() && srs->is_on(proc->get_state()->prv) && !srs->access_check(addr, sizeof(type##_t), proc->get_state()->pc)) {\
+        srs->violation(addr, sizeof(type##_t), XSCEN_ACCESS_LOAD, proc); \
+      } \
       if (addr & (sizeof(type##_t)-1)) \
         throw trap_load_address_misaligned(addr); \
       reg_t vpn = addr >> PGSHIFT; \
@@ -86,8 +93,12 @@ public:
   load_func(int64)
 
   // template for functions that store an aligned value to memory
+
   #define store_func(type) \
     void store_##type(reg_t addr, type##_t val) { \
+      if (proc && proc->get_state() && srs->is_on(proc->get_state()->prv) && !srs->access_check(addr, sizeof(type##_t), proc->get_state()->pc)) {\
+        srs->violation(addr, sizeof(type##_t), XSCEN_ACCESS_STORE, proc); \
+      } \
       if (addr & (sizeof(type##_t)-1)) \
         throw trap_store_address_misaligned(addr); \
       reg_t vpn = addr >> PGSHIFT; \
@@ -258,6 +269,11 @@ private:
   trigger_matched_t *matched_trigger;
 
   friend class processor_t;
+
+  /* scope enforcement extension */
+  friend class srs_t;
+
+  srs_t *srs;
 };
 
 #endif

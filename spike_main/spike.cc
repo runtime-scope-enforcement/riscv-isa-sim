@@ -12,6 +12,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include "srs.h"
 
 static void help()
 {
@@ -23,15 +24,16 @@ static void help()
   fprintf(stderr, "  -g                    Track histogram of PCs\n");
   fprintf(stderr, "  -l                    Generate a log of execution\n");
   fprintf(stderr, "  -h                    Print this help message\n");
-  fprintf(stderr, "  -H                 Start halted, allowing a debugger to connect\n");
+  fprintf(stderr, "  -H                    Start halted, allowing a debugger to connect\n");
   fprintf(stderr, "  --isa=<name>          RISC-V ISA string [default %s]\n", DEFAULT_ISA);
   fprintf(stderr, "  --ic=<S>:<W>:<B>      Instantiate a cache model with S sets,\n");
   fprintf(stderr, "  --dc=<S>:<W>:<B>        W ways, and B-byte blocks (with S and\n");
   fprintf(stderr, "  --l2=<S>:<W>:<B>        B both powers of 2).\n");
   fprintf(stderr, "  --extension=<name>    Specify RoCC Extension\n");
   fprintf(stderr, "  --extlib=<name>       Shared library to load\n");
-  fprintf(stderr, "  --gdb-port=<port>  Listen on <port> for gdb to connect\n");
+  fprintf(stderr, "  --gdb-port=<port>     Listen on <port> for gdb to connect\n");
   fprintf(stderr, "  --dump-config-string  Print platform configuration string and exit\n");
+  fprintf(stderr, "  --xscen=<mode>        Set xscen mode (0=strict, 1=lax, 2=debug)\n");
   exit(1);
 }
 
@@ -42,6 +44,7 @@ int main(int argc, char** argv)
   bool histogram = false;
   bool log = false;
   bool dump_config_string = false;
+  unsigned xscen_mode = XSCEN_MODE_STRICT;
   size_t nprocs = 1;
   size_t mem_mb = 0;
   std::unique_ptr<icache_sim_t> ic;
@@ -75,6 +78,7 @@ int main(int argc, char** argv)
       exit(-1);
     }
   });
+  parser.option(0, "xscen", 1, [&](const char* s){xscen_mode=atoi(s);});
 
   auto argv1 = parser.parse(argv);
   std::vector<std::string> htif_args(argv1, (const char*const*)argv + argc);
@@ -100,6 +104,7 @@ int main(int argc, char** argv)
     if (ic) s.get_core(i)->get_mmu()->register_memtracer(&*ic);
     if (dc) s.get_core(i)->get_mmu()->register_memtracer(&*dc);
     if (extension) s.get_core(i)->register_extension(extension());
+    s.get_core(i)->get_mmu()->get_srs()->set_enforcing_mode(xscen_mode);
   }
 
   s.set_debug(debug);

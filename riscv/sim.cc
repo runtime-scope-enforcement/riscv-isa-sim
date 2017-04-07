@@ -81,13 +81,21 @@ void sim_t::main()
       gdbserver->handle();
     }
   }
+
 }
 
 int sim_t::run()
 {
+  int ret;
   host = context_t::current();
   target.init(sim_thread_main, this);
-  return htif_t::run();
+  ret = htif_t::run();
+
+  for (auto proc : procs) {
+    srs_t *srs = proc->get_mmu()->get_srs();
+    srs->print_stats(proc);
+  }
+  return ret;
 }
 
 void sim_t::step(size_t n)
