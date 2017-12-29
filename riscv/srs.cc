@@ -89,19 +89,30 @@ void srs_t::exit() {
 
 void srs_t::base(reg_t addr) {
   SRS_ASSERT(bank_a.active < SRS_ENTRIES, "SRBSE: bank A is full");
-  inst_count[SRBSE]++;
+//  inst_count[SRBSE]++;
   unsigned int i = bank_a.active;
   bank_a.entries[i].base = addr;
 }
 
 void srs_t::limit(reg_t addr) {
   SRS_ASSERT(bank_a.active < SRS_ENTRIES, "SRLMT: bank A is full");
-  inst_count[SRLMT]++;
   unsigned int i = bank_a.active;
   bank_a.entries[i].limit = addr;
   SRS_ASSERT(bank_a.entries[i].base <= addr, "limit can't be less than base");
   bank_a.active++;
   printf("BANKA: %d\n", bank_a.active);
+}
+
+void srs_t::add(reg_t base, reg_t limit) {
+  inst_count[SRADD]++;
+  this->base(base);
+  this->limit(limit);
+}
+
+void srs_t::dda(reg_t base, reg_t limit) {
+  inst_count[SRDDA]++;
+  this->base(base);
+  this->limit(limit);
 }
 
 void srs_t::delegate(reg_t addr) {
@@ -123,7 +134,7 @@ void srs_t::delegate(reg_t addr) {
 }
 
 void srs_t::delegate_move(reg_t addr) {
-  inst_count[SRDLGM]++;
+//  inst_count[SRDLGM]++;
   SRS_ASSERT(bank_a.active > 0, "no active entries in bank A");
   SRS_ASSERT(bank_b.active < SRS_ENTRIES, "bank B is already full");
 
@@ -143,14 +154,20 @@ void srs_t::delegate_move(reg_t addr) {
   printf("BANKB: %d\n", bank_b.active);
 }
 
+void srs_t::delegate_sub(reg_t base, reg_t limit) {
+  inst_count[SRDSUB]++;
+  this->sub(base, limit);
+  this->delegate_move(base);
+}
+
 void srs_t::sub(reg_t base, reg_t limit) {
-  SRS_ASSERT(limit >= base, "SRSUB: limit must be greater than or equal to base");
-  inst_count[SRSUB]++;
+  SRS_ASSERT(limit >= base, "SRDSUB: limit must be greater than or equal to base");
+  inst_count[SRDSUB]++;
   reg_t regsize = limit-base+1;
   bool ok = access_check(base, regsize, 0);
-  SRS_ASSERT(ok, "SRSUB: sub region is not in bounds of any rule");
+  SRS_ASSERT(ok, "SRDSUB: sub region is not in bounds of any rule");
 
-  SRS_ASSERT(bank_a.active <= SRS_ENTRIES, "SRSUB: bank A is full");
+  SRS_ASSERT(bank_a.active <= SRS_ENTRIES, "SRDSUB: bank A is full");
   unsigned int i = bank_a.active;
   bank_a.entries[i].base = base;
   bank_a.entries[i].limit = limit;
@@ -286,12 +303,11 @@ void srs_t::print_stats(processor_t *proc) {
   fprintf(stderr, "Cycles reported by CPU: %lu\n", proc->get_state()->minstret);
   fprintf(stderr, "Xscen instructions: %u\n", total_instructions());
   fprintf(stderr, "  %s: %5u %5u\n", "sbent ", get_inst_count(SBENT), get_cycle_count(SBENT));
-  fprintf(stderr, "  %s: %5u %5u\n", "srbse ", get_inst_count(SRBSE), get_cycle_count(SRBSE));
-  fprintf(stderr, "  %s: %5u %5u\n", "srlmt ", get_inst_count(SRLMT), get_cycle_count(SRLMT));
+  fprintf(stderr, "  %s: %5u %5u\n", "sradd ", get_inst_count(SRADD), get_cycle_count(SRADD));
+  fprintf(stderr, "  %s: %5u %5u\n", "srdda ", get_inst_count(SRDDA), get_cycle_count(SRDDA));
   fprintf(stderr, "  %s: %5u %5u\n", "srdlg ", get_inst_count(SRDLG), get_cycle_count(SRDLG));
-  fprintf(stderr, "  %s: %5u %5u\n", "srdlgm", get_inst_count(SRDLGM), get_cycle_count(SRDLGM));
+  fprintf(stderr, "  %s: %5u %5u\n", "srdsub ", get_inst_count(SRDSUB), get_cycle_count(SRDSUB));
   fprintf(stderr, "  %s: %5u %5u\n", "sbxit ", get_inst_count(SBXIT), get_cycle_count(SBXIT));
-  fprintf(stderr, "  %s: %5u %5u\n", "srsub ", get_inst_count(SRSUB), get_cycle_count(SRSUB));
   fprintf(stderr, "Xscen context switches: %u\n", get_context_switches());
   fprintf(stderr, "Xscen fast context switches: %u\n", get_fast_context_switches());
   fprintf(stderr, "Access checks: %u\n", get_access_check_cntr());
@@ -398,12 +414,11 @@ unsigned int srs_t::get_cycle_count(int instr) {
 unsigned int srs_t::total_cycles() {
   int total = 0;
   total += get_cycle_count(SBENT);
-  total += get_cycle_count(SRBSE);
-  total += get_cycle_count(SRLMT);
+  total += get_cycle_count(SRADD);
+  total += get_cycle_count(SRDDA);
   total += get_cycle_count(SRDLG);
-  total += get_cycle_count(SRDLGM);
+  total += get_cycle_count(SRDSUB);
   total += get_cycle_count(SBXIT);
-  total += get_cycle_count(SRSUB);
   return total;
 }
 

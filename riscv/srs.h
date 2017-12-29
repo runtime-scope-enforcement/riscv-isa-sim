@@ -5,22 +5,21 @@
 #include "processor.h"
 #include <vector>
 
-#define SRS_STACK_FRAMES 16
-#define SRS_ENTRIES 128
+#define SRS_STACK_FRAMES 11
+#define SRS_ENTRIES 122
 
 enum {XSCEN_ACCESS_LOAD, XSCEN_ACCESS_STORE};
 enum {XSCEN_MODE_STRICT, XSCEN_MODE_LAX, XSCEN_MODE_DEBUG};
 enum {
   SBENT,
-  SRBSE,
-  SRLMT,
+  SRADD,
+  SRDDA,
   SRDLG,
-  SRDLGM,
-  SBXIT,
-  SRSUB
+  SRDSUB,
+  SBXIT
 };
 
-static unsigned int cycle_counts[] {1,1,1,2,2,1,2};
+static unsigned int cycle_counts[] {1,1,1,2,2,2};
 
 struct srs_entry {
   reg_t base;
@@ -78,9 +77,12 @@ public:
   void exit();
   void base(reg_t addr);
   void limit(reg_t addr);
+  void add(reg_t base, reg_t limit);
+  void dda(reg_t base, reg_t limit);
   void delegate(reg_t addr);
   void delegate_move(reg_t addr);
   void sub(reg_t base, reg_t limit);
+  void delegate_sub(reg_t base, reg_t limit);
   void switch_ctx(reg_t cycle, reg_t pc, int instruction);
   void print_state();
   void violation(reg_t addr, size_t len, unsigned access, processor_t *proc);
