@@ -69,7 +69,7 @@
 /* Enable PC histogram generation */
 #undef RISCV_ENABLE_HISTOGRAM
 
-/* Enable Pulpino-compatible memory mapping */
+/* Enable Pulpino-compatible memory mappings */
 #undef RISCV_ENABLE_PULPINO
 
 /* Define if subproject MCPPBS_SPROJ_NORM is enabled */

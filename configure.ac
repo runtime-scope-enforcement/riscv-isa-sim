@@ -77,6 +77,15 @@ AC_SUBST([CFLAGS],  ["-Wall -Wno-unused -g -O2"])
 AC_SUBST([CXXFLAGS],["-Wall -Wno-unused -g -O2 -std=c++11"])
 
 #-------------------------------------------------------------------------
+# Additional arguments
+#-------------------------------------------------------------------------
+AC_ARG_VAR([PROGRAM_PREFIX], [Prepend prefix to installed program names.])
+AS_IF([test "x$PROGRAM_PREFIX" = x], [PROGRAM_PREFIX=""])
+
+AC_ARG_VAR([PROGRAM_SUFFIX], [Append suffix to installed program names.])
+AS_IF([test "x$PROGRAM_SUFFIX" = x], [PROGRAM_SUFFIX=""])
+
+#-------------------------------------------------------------------------
 # MCPPBS subproject list
 #-------------------------------------------------------------------------
 # Order list so that subprojects only depend on those listed earlier.

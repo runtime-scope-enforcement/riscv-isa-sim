@@ -120,8 +120,12 @@ MKINSTALLDIRS := $(scripts_dir)/mk-install-dirs.sh
 INSTALL       := @INSTALL@
 INSTALL_HDR   := $(INSTALL) -m 444
 INSTALL_LIB   := $(INSTALL) -m 644
-INSTALL_EXE   := $(INSTALL) -m 555
+INSTALL_EXE   := $(INSTALL) -m 555 -T
 STOW          := @stow@
+
+# Program prefix and suffix
+PROGRAM_PREFIX := @PROGRAM_PREFIX@
+PROGRAM_SUFFIX := @PROGRAM_SUFFIX@
 
 # Tests
 bintests = $(src_dir)/tests/ebreak.py
@@ -374,7 +378,7 @@ install-exes : $(install_exes)
 	$(MKINSTALLDIRS) $(install_exes_dir)
 	for file in $^; \
   do \
-    $(INSTALL_EXE) $$file $(install_exes_dir); \
+    $(INSTALL_EXE) $$file $(install_exes_dir)/$(PROGRAM_PREFIX)$${file}$(PROGRAM_SUFFIX); \
   done
 
 install-pc : $(install_pcs)
