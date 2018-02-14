@@ -51,18 +51,21 @@ endif
 # Installation directories
 
 prefix       := @prefix@
+exec_prefix  := @exec_prefix@
 enable_stow  := @enable_stow@
 
 ifeq ($(enable_stow),yes)
   stow_pkg_dir := $(prefix)/pkgs
   INSTALLDIR ?= $(DESTDIR)/$(stow_pkg_dir)/$(project_name)-$(project_ver)
-else
-  INSTALLDIR ?= $(DESTDIR)/$(prefix)
-endif
 
-install_hdrs_dir := $(INSTALLDIR)/include/$(project_name)
-install_libs_dir := $(INSTALLDIR)/lib
-install_exes_dir := $(INSTALLDIR)/bin
+  install_hdrs_dir := $(INSTALLDIR)/include/$(project_name)
+  install_libs_dir := $(INSTALLDIR)/lib
+  install_exes_dir := $(INSTALLDIR)/bin
+else
+  install_hdrs_dir := $(DESTDIR)/@includedir@/$(project_name)
+  install_libs_dir := $(DESTDIR)/@libdir@
+  install_exes_dir := $(DESTDIR)/@bindir@
+endif
 
 #-------------------------------------------------------------------------
 # List of subprojects
